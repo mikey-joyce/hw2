@@ -40,11 +40,11 @@ int main(void){
     }
 
     //used to test that we got the correct data set
-    
     /*
     for(int j = 0; j<i; j++){
         printf("%d\n", myList[j]);
     }*/
+    
     int size = sizeof (myList) / sizeof (myList[0]);
     int m = mom_select(myList, myList[0], size);
     printf("%d\n", m);
