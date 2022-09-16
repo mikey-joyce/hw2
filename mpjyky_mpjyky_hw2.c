@@ -12,7 +12,7 @@ void combine(int *myList, int left, int mid, int right, int size);
 
 int main(void){
     //open file
-    FILE *fPtr = fopen("input_file1.txt", "r");
+    FILE *fPtr = fopen("input_file2.txt", "r");
 
     //determine if the file exists
     if (fPtr == NULL){
@@ -44,15 +44,15 @@ int main(void){
     for(int j = 0; j<i; j++){
         printf("%d\n", myList[j]);
     }*/
-    
+
     int size = sizeof (myList) / sizeof (myList[0]);
     int m = mom_select(myList, myList[0], size);
-    printf("%d\n", m);
+    //printf("mom_select result: %d\n", m);
 
-    printf("Sorted list?\n");
+    /*printf("Sorted list?\n");
     for(int j = 0; j<i; j++){
         printf("%d\n", myList[j]);
-    }
+    }*/
 
     fclose(fPtr);
     fPtr = NULL;
@@ -105,5 +105,16 @@ int mom_select(int *myList, int node, int size){
         mergesort(myList, 0, size-1, size);
         return myList[size/2];
     }
+
+    //group myList into groups of 5 elements each ignore leftovers
+    //the nodes in this array represent the starting index in myList[] for each group
+    //ex: group[0] is the index of the first group in myList and to access this node do myList[group[0]];
+    int groups[size/5];
+    printf("Groups\n");
+    for(int i = 0; i < (size/5); i++){
+        groups[i] = i*5;
+        printf("%d\n", groups[i]);
+    }
+
     return size;
 }
