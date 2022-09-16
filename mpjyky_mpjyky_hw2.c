@@ -103,6 +103,7 @@ void mergesort(int *myList, int left, int right, int size){
 int mom_select(int *myList, int node, int size){
     if(size < 50){
         mergesort(myList, 0, size-1, size);
+        return myList[size/2];
     }
     return size;
 }
