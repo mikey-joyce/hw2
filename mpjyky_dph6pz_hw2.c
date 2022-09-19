@@ -9,10 +9,13 @@ Mikey Joyce*/
 int mom_select(int *myList, int node, int size);
 void mergesort(int *myList, int left, int right, int size);
 void combine(int *myList, int left, int mid, int right, int size);
+int quickselect(int *myList, int left, int right, int node);
+int partition(int *myList, int left, int right);
+void swapElements(int *first, int *second);
 
 int main(void){
     //open file
-    FILE *fPtr = fopen("input_file2.txt", "r");
+    FILE *fPtr = fopen("input_file3.txt", "r");
 
     //determine if the file exists
     if (fPtr == NULL){
@@ -29,8 +32,8 @@ int main(void){
     rewind(fPtr);
 
     //obtain x
-    //int x=0;
-    //fscanf(fPtr, "%d\n", &x);
+    int x=0;
+    fscanf(fPtr, "%d\n", &x);
 
     //obtain the list
     int myList[count],i=0;
@@ -46,8 +49,11 @@ int main(void){
     }*/
 
     int size = sizeof (myList) / sizeof (myList[0]);
-    int m = mom_select(myList, myList[0], size);
-    //printf("mom_select result: %d\n", m);
+    int pivot = mom_select(myList, x, size); // the pivot is the median of medians
+    printf("mom_select result: %d\n", pivot);
+
+    //int final = quickselect(myList, 0, size, pivot);
+    //printf("kth element: %d\n", final);
 
     /*printf("Sorted list?\n");
     for(int j = 0; j<i; j++){
@@ -100,21 +106,75 @@ void mergesort(int *myList, int left, int right, int size){
     }
 }
 
+void swapElements(int *first, int *second){
+    int temp = *first;
+    *first = *second;
+    *second = temp;
+}
+
+int partition(int *myList, int left, int right){
+    //sorts the list in an order to pick the local median
+    int pivot = myList[right], x = left;
+
+    for(int i = left; i < right; i++){
+        if(myList[i] < pivot){
+            swapElements(&myList[x], &myList[i]);
+            x++;
+        }
+    }
+
+    swapElements(&myList[x], &myList[right]);
+    return x;
+}
+
+
+int quickselect(int *myList, int left, int right, int node){
+    //Returns the median of each group of 5, aka the local median
+    //node is the target position, which is the middle of the group of 5
+    int position = partition(myList, left, right); //this is the temp position
+
+    if(position == node-1){
+        return myList[position];
+    }
+    else if (node - 1 < position){
+        return quickselect(myList, left, position-1, node);
+    }
+    else{
+        return quickselect(myList, position+1, right, node);
+    }
+}
+
 int mom_select(int *myList, int node, int size){
     if(size < 50){
         mergesort(myList, 0, size-1, size);
-        return myList[size/2];
+        return myList[node-1];
     }
 
     //group myList into groups of 5 elements each ignore leftovers
     //the nodes in this array represent the starting index in myList[] for each group
     //ex: group[0] is the index of the first group in myList and to access this node do myList[group[0]];
     int groups[size/5];
-    printf("Groups\n");
+    //printf("Groups\n");
     for(int i = 0; i < (size/5); i++){
         groups[i] = i*5;
-        printf("%d\n", groups[i]);
+        //printf("%d\n", groups[i]);
     }
 
-    return size;
+    printf("Group medians:\n");
+    int group_medians[size/5];
+    for(int i = 0; i < (size/5); i++){
+        group_medians[i] = quickselect(myList, groups[i], groups[i]+4, groups[i]+3);
+        printf("%d\n", group_medians[i]);
+    }
+
+    //size/10 is target for pivot and size/5 is the size of group_medians array
+    //printf("size/10: %d\n", size/10);
+    int pivot = mom_select(group_medians, size/10, size/5);
+    /*printf("Group medians after quicksort\n");
+    for(int i = 0; i < (size/5); i++){
+        printf("%d\n", group_medians[i]);
+    }*/
+    printf("Pivot: %d\n", pivot);
+
+    return pivot;
 }
