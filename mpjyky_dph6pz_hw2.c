@@ -1,5 +1,6 @@
-/*HW2 Author:
-Mikey Joyce*/
+/*HW2 Authors:
+Mikey Joyce
+Devin Hackman*/
 
 //libraries
 #include <stdio.h>
@@ -12,10 +13,13 @@ void combine(int *myList, int left, int mid, int right, int size);
 int quickselect(int *myList, int left, int right, int target);
 int quick_partition(int *myList, int left, int right);
 void swapElements(int *first, int *second);
+void getPartitionSizes(int *myList, int pivot, int size, int *partitionSizes);
+void mom_partitions(int *myList, int *small, int *large, int pivot, int size, int *partitionSizes);
+int getXthElement(int *small, int *large, int *partitionSizes, int x);
 
 int main(void){
     //open file
-    FILE *fPtr = fopen("input_file2.txt", "r");
+    FILE *fPtr = fopen("input_file3.txt", "r");
 
     //determine if the file exists
     if (fPtr == NULL){
@@ -42,23 +46,20 @@ int main(void){
         i++;
     }
 
-    //used to test that we got the correct data set
-    /*
-    for(int j = 0; j<i; j++){
-        printf("%d\n", myList[j]);
-    }*/
-
     int size = sizeof (myList) / sizeof (myList[0]);
     int pivot = mom_select(myList, x, size); // the pivot is the median of medians
-    printf("mom_select result: %d\n", pivot);
 
-    //int final = quickselect(myList, 0, size, pivot);
-    //printf("kth element: %d\n", final);
+    // gets the sizes of the small and the large partition and stores it in partitionSizes
+    int partitionSizes[2];
+    getPartitionSizes(myList, pivot, size, partitionSizes);
+    int small[partitionSizes[0]], large[partitionSizes[1]];
 
-    /*printf("Sorted list?\n");
-    for(int j = 0; j<i; j++){
-        printf("%d\n", myList[j]);
-    }*/
+    //fills the partitions with the proper elements
+    mom_partitions(myList, small, large, pivot, size, partitionSizes);
+    //returns result which is the xth smallest element
+    int result = getXthElement(small, large, partitionSizes, x);
+    
+    printf("result = %d\n", result);
 
     fclose(fPtr);
     fPtr = NULL;
@@ -71,6 +72,10 @@ int main(void){
     FILE *fPtr = fopen(argv[1], "r");
 }*/
 
+/*
+This function combines the two different sides of our array to be one fully
+sorted array and marks the completion of our mergesort algorithm.
+*/
 void combine(int *myList, int left, int mid, int right, int size){
     int leftIndex, rightIndex, i;
     int temp[size];
@@ -97,6 +102,9 @@ void combine(int *myList, int left, int mid, int right, int size){
     }
 }
 
+/*
+This function will sort a given array recursively from smallest to largest.
+*/
 void mergesort(int *myList, int left, int right, int size){
     if(left < right){
         int mid = (left+(right))/2;
@@ -106,28 +114,38 @@ void mergesort(int *myList, int left, int right, int size){
     }
 }
 
+/*
+This function takes two array elements first and second and swaps them
+*/
 void swapElements(int *first, int *second){
     int temp = *first;
     *first = *second;
     *second = temp;
 }
 
+/*
+This function returns a position for our quickselect algorithm 
+*/
 int quick_partition(int *myList, int left, int right){
     //sorts the list in an order to pick the local median
-    int pivot = myList[right], x = left;
+    int pivot = myList[right], position = left;
 
     for(int i = left; i < right; i++){
         if(myList[i] < pivot){
-            swapElements(&myList[x], &myList[i]);
-            x++;
+            swapElements(&myList[position], &myList[i]);
+            position++;
         }
     }
 
-    swapElements(&myList[x], &myList[right]);
-    return x;
+    swapElements(&myList[position], &myList[right]);
+    return position;
 }
 
 
+/*
+This function is used to return the median of each group of 5 that way
+we can have an array of local medians.
+*/
 int quickselect(int *myList, int left, int right, int target){
     //Returns the median of each group of 5, aka the local median
     //node is the target position, which is the middle of the group of 5
@@ -144,6 +162,69 @@ int quickselect(int *myList, int left, int right, int target){
     }
 }
 
+/*
+This function determines the size of our mom_select partitions and stores it in the given
+array called partitionSizes. The first element of partitionSizes is the size of the small
+partition, which contains elements smaller than or equal to the pivot. The second element
+of partitionSizes is the size of the large partition, which contains elements greater than
+the pivot. 
+*/
+void getPartitionSizes(int *myList, int pivot, int size, int *partitionSizes){
+    int smallIndex=0, largeIndex=0;
+    for(int i=0; i < size; i++){
+        if(myList[i] <= pivot){
+            smallIndex++;
+        }
+        else{
+            largeIndex++;
+        }
+    }
+
+    partitionSizes[0] = smallIndex, partitionSizes[1] = largeIndex;
+}
+
+/*
+This function takes empty partitions small and large and fills them using the given list myList
+and the partitionSizes array. It uses the pivot point to determine to which array (small or large)
+to put the myList element in.
+*/
+void mom_partitions(int *myList, int *small, int *large, int pivot, int size, int *partitionSizes){
+    int smallIndex=0, largeIndex=0;
+    for(int i=0; i < size; i++){
+        if(myList[i] <= pivot){
+            small[smallIndex] = myList[i];
+            smallIndex++;
+        }
+        else{
+            large[largeIndex] = myList[i];
+            largeIndex++;
+        }
+    }
+}
+
+/*
+This function takes our partitions and if x is less than or equal to the small partition
+then it sorts the small partition and returns the xth smallest element. Otherwise it 
+sorts the large partition and returns the xth smallest element. 
+*/
+int getXthElement(int *small, int *large, int *partitionSizes, int x){
+    if(x <= partitionSizes[0]){
+        mergesort(small, 0, partitionSizes[0]-1, partitionSizes[0]);
+        return small[x-1];
+    }
+    else{
+        mergesort(large, 0, partitionSizes[1]-1, partitionSizes[1]);
+        return large[x-partitionSizes[0]-1];
+    }
+
+    return -1;
+}
+
+/*
+This is the main median of medians algorithm based on the psuedocode given in class.
+It takes an array, the xth element, and the size of the array and returns the median
+of medians of the array myList. This will be used as our pivot point later.
+*/
 int mom_select(int *myList, int node, int size){
     if(size < 50){
         mergesort(myList, 0, size-1, size);
@@ -154,27 +235,17 @@ int mom_select(int *myList, int node, int size){
     //the nodes in this array represent the starting index in myList[] for each group
     //ex: group[0] is the index of the first group in myList and to access this node do myList[group[0]];
     int groups[size/5];
-    //printf("Groups\n");
     for(int i = 0; i < (size/5); i++){
         groups[i] = i*5;
-        //printf("%d\n", groups[i]);
     }
 
-    printf("Group medians:\n");
     int group_medians[size/5];
     for(int i = 0; i < (size/5); i++){
         group_medians[i] = quickselect(myList, groups[i], groups[i]+4, groups[i]+3);
-        printf("%d\n", group_medians[i]);
     }
 
     //size/10 is target for pivot and size/5 is the size of group_medians array
-    //printf("size/10: %d\n", size/10);
     int pivot = mom_select(group_medians, size/10, size/5);
-    /*printf("Group medians after quicksort\n");
-    for(int i = 0; i < (size/5); i++){
-        printf("%d\n", group_medians[i]);
-    }*/
-    printf("Pivot: %d\n", pivot);
 
     return pivot;
 }
