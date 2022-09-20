@@ -59,7 +59,7 @@ int main(void){
     //returns result which is the xth smallest element
     int result = getXthElement(small, large, partitionSizes, x);
     
-    printf("result = %d\n", result);
+    printf("%d\n", result);
 
     fclose(fPtr);
     fPtr = NULL;
