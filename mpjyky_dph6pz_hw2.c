@@ -9,13 +9,13 @@ Mikey Joyce*/
 int mom_select(int *myList, int node, int size);
 void mergesort(int *myList, int left, int right, int size);
 void combine(int *myList, int left, int mid, int right, int size);
-int quickselect(int *myList, int left, int right, int node);
-int partition(int *myList, int left, int right);
+int quickselect(int *myList, int left, int right, int target);
+int quick_partition(int *myList, int left, int right);
 void swapElements(int *first, int *second);
 
 int main(void){
     //open file
-    FILE *fPtr = fopen("input_file3.txt", "r");
+    FILE *fPtr = fopen("input_file2.txt", "r");
 
     //determine if the file exists
     if (fPtr == NULL){
@@ -112,7 +112,7 @@ void swapElements(int *first, int *second){
     *second = temp;
 }
 
-int partition(int *myList, int left, int right){
+int quick_partition(int *myList, int left, int right){
     //sorts the list in an order to pick the local median
     int pivot = myList[right], x = left;
 
@@ -128,19 +128,19 @@ int partition(int *myList, int left, int right){
 }
 
 
-int quickselect(int *myList, int left, int right, int node){
+int quickselect(int *myList, int left, int right, int target){
     //Returns the median of each group of 5, aka the local median
     //node is the target position, which is the middle of the group of 5
-    int position = partition(myList, left, right); //this is the temp position
+    int position = quick_partition(myList, left, right); //this is the temp position
 
-    if(position == node-1){
+    if(position == target-1){
         return myList[position];
     }
-    else if (node - 1 < position){
-        return quickselect(myList, left, position-1, node);
+    else if (target - 1 < position){
+        return quickselect(myList, left, position-1, target);
     }
     else{
-        return quickselect(myList, position+1, right, node);
+        return quickselect(myList, position+1, right, target);
     }
 }
 
