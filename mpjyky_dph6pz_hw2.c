@@ -4,11 +4,12 @@ Devin Hackman*/
 
 //libraries
 #include <stdio.h>
+#include <stdlib.h>
 #include "input_error.h"
 
 //prototypes
 int mom_select(int *myList, int node, int size);
-void mergesort(int *myList, int left, int right, int size);
+void my_mergesort(int *myList, int left, int right, int size);
 void combine(int *myList, int left, int mid, int right, int size);
 int quickselect(int *myList, int left, int right, int target);
 int quick_partition(int *myList, int left, int right);
@@ -17,13 +18,19 @@ void getPartitionSizes(int *myList, int pivot, int size, int *partitionSizes);
 void mom_partitions(int *myList, int *small, int *large, int pivot, int size, int *partitionSizes);
 int getXthElement(int *small, int *large, int *partitionSizes, int x);
 
-int main(void){
+int main(int argc, char **argv){
     //open file
-    FILE *fPtr = fopen("input_file3.txt", "r");
+    //FILE *fPtr = fopen("input_file4.txt", "r");
 
-    //determine if the file exists
+    // needs a test for only one command line argument
+    FILE *fPtr = fopen(argv[1], "r");
+    if(argc > 2){
+        exit(INCORRECT_NUMBER_OF_COMMAND_LINE_ARGUMENTS);
+    }
+
+    //determine if the file exists, exits file with 
     if (fPtr == NULL){
-        printf("Could not open file\n");
+        exit(INPUT_FILE_FAILED_TO_OPEN);
         return 0;
     }
 
@@ -32,18 +39,33 @@ int main(void){
 
     //count amount of lines in file 
     for (temp = getc(fPtr); temp != EOF; temp = getc(fPtr)) if (temp == '\n') count = count + 1;
+    //printf("Count: %d\n",count);
+    if (0 == count) {
+        exit(PARSING_ERROR_EMPTY_FILE);
+    }
     
     rewind(fPtr);
 
     //obtain x
     int x=0;
-    fscanf(fPtr, "%d\n", &x);
+    if(!fscanf(fPtr, "%d\n", &x)){
+        exit(PARSING_ERROR_INVALID_CHARACTER_ENCOUNTERED);
+    }
 
     //obtain the list
     int myList[count],i=0;
+
+    // needs a test for an incorrect character
     while(!feof(fPtr)){
-        fscanf(fPtr, "%d\n", &myList[i]);
-        i++;
+        if(fscanf(fPtr, "%d\n", &myList[i])){
+            if(myList[i]<0){
+                exit(PARSING_ERROR_INVALID_CHARACTER_ENCOUNTERED);
+            }
+            i++;
+        }
+        else{
+            exit(PARSING_ERROR_INVALID_CHARACTER_ENCOUNTERED);
+        }
     }
 
     int size = sizeof (myList) / sizeof (myList[0]);
@@ -61,16 +83,13 @@ int main(void){
     
     printf("%d\n", result);
 
-    fclose(fPtr);
+    if(fclose(fPtr) != 0){
+        exit(INPUT_FILE_FAILED_TO_CLOSE);
+    }
     fPtr = NULL;
 
     return 0;
 }
-
-//Will need to do this for a command line argument of a file
-/*int main(int argc, char **argv){
-    FILE *fPtr = fopen(argv[1], "r");
-}*/
 
 /*
 This function combines the two different sides of our array to be one fully
@@ -105,11 +124,11 @@ void combine(int *myList, int left, int mid, int right, int size){
 /*
 This function will sort a given array recursively from smallest to largest.
 */
-void mergesort(int *myList, int left, int right, int size){
+void my_mergesort(int *myList, int left, int right, int size){
     if(left < right){
         int mid = (left+(right))/2;
-        mergesort(myList, left, mid, size);
-        mergesort(myList, mid+1, right, size);
+        my_mergesort(myList, left, mid, size);
+        my_mergesort(myList, mid+1, right, size);
         combine(myList, left, mid, right, size);
     }
 }
@@ -130,7 +149,9 @@ int quick_partition(int *myList, int left, int right){
     //sorts the list in an order to pick the local median
     int pivot = myList[right], position = left;
 
-    for(int i = left; i < right; i++){
+    int i = 0;
+
+    for(i = left; i < right; i++){
         if(myList[i] < pivot){
             swapElements(&myList[position], &myList[i]);
             position++;
@@ -171,7 +192,10 @@ the pivot.
 */
 void getPartitionSizes(int *myList, int pivot, int size, int *partitionSizes){
     int smallIndex=0, largeIndex=0;
-    for(int i=0; i < size; i++){
+
+    int i=0;
+
+    for(i=0; i < size; i++){
         if(myList[i] <= pivot){
             smallIndex++;
         }
@@ -190,7 +214,10 @@ to put the myList element in.
 */
 void mom_partitions(int *myList, int *small, int *large, int pivot, int size, int *partitionSizes){
     int smallIndex=0, largeIndex=0;
-    for(int i=0; i < size; i++){
+
+    int i=0;
+
+    for(i=0; i < size; i++){
         if(myList[i] <= pivot){
             small[smallIndex] = myList[i];
             smallIndex++;
@@ -209,11 +236,11 @@ sorts the large partition and returns the xth smallest element.
 */
 int getXthElement(int *small, int *large, int *partitionSizes, int x){
     if(x <= partitionSizes[0]){
-        mergesort(small, 0, partitionSizes[0]-1, partitionSizes[0]);
+        my_mergesort(small, 0, partitionSizes[0]-1, partitionSizes[0]);
         return small[x-1];
     }
     else{
-        mergesort(large, 0, partitionSizes[1]-1, partitionSizes[1]);
+        my_mergesort(large, 0, partitionSizes[1]-1, partitionSizes[1]);
         return large[x-partitionSizes[0]-1];
     }
 
@@ -227,7 +254,7 @@ of medians of the array myList. This will be used as our pivot point later.
 */
 int mom_select(int *myList, int node, int size){
     if(size < 50){
-        mergesort(myList, 0, size-1, size);
+        my_mergesort(myList, 0, size-1, size);
         return myList[node-1];
     }
 
@@ -235,12 +262,15 @@ int mom_select(int *myList, int node, int size){
     //the nodes in this array represent the starting index in myList[] for each group
     //ex: group[0] is the index of the first group in myList and to access this node do myList[group[0]];
     int groups[size/5];
-    for(int i = 0; i < (size/5); i++){
+
+    int i = 0;
+
+    for(i = 0; i < (size/5); i++){
         groups[i] = i*5;
     }
 
     int group_medians[size/5];
-    for(int i = 0; i < (size/5); i++){
+    for(i = 0; i < (size/5); i++){
         group_medians[i] = quickselect(myList, groups[i], groups[i]+4, groups[i]+3);
     }
 
