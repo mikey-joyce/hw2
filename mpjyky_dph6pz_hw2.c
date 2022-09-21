@@ -8,20 +8,18 @@ Devin Hackman*/
 #include "input_error.h"
 
 //prototypes
-int mom_select(int *myList, int node, int size);
-void my_mergesort(int *myList, int left, int right, int size);
 void combine(int *myList, int left, int mid, int right, int size);
-int quickselect(int *myList, int left, int right, int target);
-int quick_partition(int *myList, int left, int right);
+void my_mergesort(int *myList, int left, int right, int size);
 void swapElements(int *first, int *second);
+int quick_partition(int *myList, int left, int right);
+int quickselect(int *myList, int left, int right, int target);
 void getPartitionSizes(int *myList, int pivot, int size, int *partitionSizes);
 void mom_partitions(int *myList, int *small, int *large, int pivot, int size, int *partitionSizes);
 int getXthElement(int *small, int *large, int *partitionSizes, int x);
+int mom_select(int *myList, int node, int size);
 
 int main(int argc, char **argv){
     //open file
-    //FILE *fPtr = fopen("input_file4.txt", "r");
-
     // needs a test for only one command line argument
     FILE *fPtr = fopen(argv[1], "r");
     if(argc > 2){
@@ -68,7 +66,14 @@ int main(int argc, char **argv){
         }
     }
 
+    //obtain 
     int size = sizeof (myList) / sizeof (myList[0]);
+    //if there are less elements in myList than x then print -1
+    if (size < x){
+        printf("%d\n", -1); //answer
+        return -1;
+    }
+
     int pivot = mom_select(myList, x, size); // the pivot is the median of medians
 
     // gets the sizes of the small and the large partition and stores it in partitionSizes
@@ -81,14 +86,14 @@ int main(int argc, char **argv){
     //returns result which is the xth smallest element
     int result = getXthElement(small, large, partitionSizes, x);
     
-    printf("%d\n", result);
+    printf("%d\n", result);//answer
 
     if(fclose(fPtr) != 0){
         exit(INPUT_FILE_FAILED_TO_CLOSE);
     }
     fPtr = NULL;
 
-    return 0;
+    return result;
 }
 
 /*
